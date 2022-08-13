@@ -129,7 +129,8 @@ def parse_article(content):
 
     content.event_plugin_data = {"dtstart": dtstart, "dtend": dtend}
 
-    events.append(content)
+    if not 'status' in content.metadata or content.metadata['status'] != 'draft':
+        events.append(content)
 
 
 def generate_ical_file(generator):
