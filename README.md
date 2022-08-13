@@ -23,12 +23,14 @@ You can define settings with the `PLUGIN_EVENTS` variable:
 
 ```python
 PLUGIN_EVENTS = {
+    'metadata_field_for_summary': 'summary'
     'ics_fname': 'calendar.ics',
 }
 ```
 
 Settings:
 - `ics_fname`: Where the iCal file is written
+- `metadata_field_for_summary`: Metadata field from articles to be used as summary text for events in the ics file. Default: 'summary'
 
 
 Usage
