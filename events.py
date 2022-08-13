@@ -192,14 +192,22 @@ def generate_localized_events(generator):
                 log.debug("event %s contains no lang attribute" % (e.metadata["title"],))
 
 
-def generate_events_list(generator):
-    """Populate the event_list variable to be used in jinja templates"""
+def populate_context_variables(generator):
+    """Populate the event_list and upcoming_events_list variables to be used in jinja templates"""
+
+    filter_future = lambda ev: ev.event_plugin_data["dtend"].date() >= datetime.now().date()
 
     if not localized_events:
         generator.context['events_list'] = sorted(events, reverse = True,
                                                   key=lambda ev: (ev.event_plugin_data["dtstart"], ev.event_plugin_data["dtend"]))
+        generator.context['upcoming_events_list'] = sorted(filter(filter_future, events),
+                                                  key=lambda ev: (ev.event_plugin_data["dtstart"], ev.event_plugin_data["dtend"]))
     else:
         generator.context['events_list'] = {k: sorted(v, reverse = True,
+                                                      key=lambda ev: (ev.event_plugin_data["dtstart"], ev.event_plugin_data["dtend"]))
+                                            for k, v in localized_events.items()}
+
+        generator.context['upcoming_events_list'] = {k: sorted(filter(filter_future, v),
                                                       key=lambda ev: (ev.event_plugin_data["dtstart"], ev.event_plugin_data["dtend"]))
                                             for k, v in localized_events.items()}
 
@@ -217,6 +225,6 @@ def register():
     signals.content_object_init.connect(parse_article)
     signals.article_generator_finalized.connect(generate_localized_events)
     signals.article_generator_finalized.connect(generate_ical_file)
-    signals.article_generator_finalized.connect(generate_events_list)
+    signals.article_generator_finalized.connect(populate_context_variables)
 
 

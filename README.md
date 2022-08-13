@@ -4,6 +4,15 @@ Events plugin
 This plugin allows you to put events in your content via metadata. An
 iCal file is generated containing all events.
 
+This plugin is based on the events plugin hosted at the official [pelican-plugins](https://github.com/getpelican/pelican-plugins/tree/master/events) repository.
+
+Customizing Makerspace Esslingen
+--------------------------------
+We have done some modifications on the official version of the plugin
+    - introduced a new setting `metadata_field_for_summary` to control which metadata field should be used as event summary text for events in the ics file
+    - calendar.ics file and events_list.html do not include events from draft pages anymore
+    - added an upcoming_events field to the context data of a page template for rendering current and future events only
+
 
 Dependencies
 ------------
