@@ -77,17 +77,67 @@ Event-location: somewhere
 ```
 
 
-Dedicated page
---------------
+Dedicated events overview 
+-------------------------
 
-To generate a sorted event list in its own dedicated page:
-- Copy the `events_list.html` template under the templates directory of your theme
-- Create a page for this list, for example in `content/pages/events_list.rst`
+###
+
+### Events overview
+
+To generate a single overview webpage for displaying a sorted list of events:
+
+- change pelicanconf.py
+  - add the 'events_list' template to DIRECT_TEMPLATES=
+
+    ```DIRECT_TEMPLATES = ['index', 'tags', 'categories', 'authors', 'archives', 'events_list']```
+
+  - (optional) set the name of the target html file that should be generated. Default: 'events_list.html'
+
+    ```EVENTS_LIST_SAVE_AS = 'my_great_list_of_events.html'```
+
+### Upcoming events overview
+
+To generate a single overview webpage for displaying a sorted list of current and upcoming events only:
+
+- change pelicanconf.py
+    - add the 'upcoming_events_list' template to DIRECT_TEMPLATES=
+
+        ```DIRECT_TEMPLATES = ['index', 'tags', 'categories', 'authors', 'archives', 'upcoming_events_list']```
+
+    - (optional) set the name of the target html file that should be generated. Default: 'upcoming_events_list.html'
+
+        ```UPCOMING_EVENTS_LIST_SAVE_AS = 'my_great_list_of_upcoming_events.html'```
+
+### List of events on pages
+
+To be able to display a sorted overview of events within one or more pelican pages:
+
+- Copy the `events_list_page.html` template under the templates directory of your theme
+- Create one or more pages using this template, for example in `content/pages/events_list.rst`
 - Include the following metadata in your content:
 ```reST
-Events list
+Title of events list page
 ###########
 :slug: events-list
 :summary:
-:template: events_list
+:template: events_list_page
 ```
+
+Title, slug and content of the renered pages is controlled by the various files located in the content/pages/ directory.
+
+### List of upcoming events on pages
+
+To be able to display a sorted overview of current and upcoming events within one or more pelican pages:
+
+- Copy the `upcoming_events_list_page.html` template under the templates directory of your theme
+- Create one or more pages using this template, for example in `content/pages/events_list.rst`
+- Include the following metadata in your content:
+```reST
+Title of upcoming events list page
+###########
+:slug: upcoming-events-list
+:summary:
+:template: upcoming_events_list_page
+```
+
+Title, slug and content of the renered pages is controlled by the various files located in the content/pages/ directory.
