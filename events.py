@@ -22,6 +22,7 @@ from io import StringIO
 import logging
 import os.path
 import pytz
+import croniter
 
 log = logging.getLogger(__name__)
 
@@ -133,6 +134,39 @@ def parse_article(content):
         events.append(content)
 
 
+def insert_recurring_events(generator):
+    global events
+
+    class AttributeDict(dict):
+        __getattr__ = dict.__getitem__
+        __setattr__ = dict.__setitem__
+        __delattr__ = dict.__delitem__
+
+    if not 'recurring_events' in generator.settings['PLUGIN_EVENTS']:
+        return
+
+    for event in generator.settings['PLUGIN_EVENTS']['recurring_events']:
+        cron = croniter.croniter(event['schedule'], datetime.now())
+        next_occurence = cron.get_next(datetime)
+        event_duration = parse_timedelta(event)
+
+        event = AttributeDict({
+            'url': f"pages/{event['page_url']}",
+            'location': event['location'],
+            'metadata': dict({
+                'title': event['title'],
+                'summary': event['summary'],
+                'date': next_occurence,
+                'event-location' : event['location']
+            }),
+            'event_plugin_data': dict({
+                'dtstart': next_occurence,
+                'dtend': next_occurence + event_duration,
+            })
+        })
+        events.append(event)
+
+
 def generate_ical_file(generator):
     """Generate an iCalendar file
     """
@@ -219,6 +253,7 @@ def initialize_events(article_generator):
 
     del events[:]
     localized_events.clear()
+    insert_recurring_events(article_generator)
 
 def register():
     signals.article_generator_init.connect(initialize_events)
