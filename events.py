@@ -22,6 +22,7 @@ from io import StringIO
 import logging
 import os.path
 import pytz
+import re
 import croniter
 
 log = logging.getLogger(__name__)
@@ -146,8 +147,34 @@ def insert_recurring_events(generator):
         return
 
     for event in generator.settings['PLUGIN_EVENTS']['recurring_events']:
-        cron = croniter.croniter(event['schedule'], datetime.now())
-        next_occurence = cron.get_next(datetime)
+        cron_expression = event['schedule']
+
+        even_uneven_weeks = ''
+
+        # Check whether cron_expression contains even matcher
+        p = re.compile('.*e$')
+        if p.match(cron_expression):
+            cron_expression = cron_expression[:-1]
+            even_uneven_weeks = 'EVEN'
+
+        # Check whether cron_expression contains uneven matcher
+        p = re.compile('.*u$')
+        if p.match(cron_expression):
+            print('UNEVEN weeks only')
+            cron_expression = cron_expression[:-1]
+            even_uneven_weeks = 'UNEVEN'
+
+        cron = croniter.croniter(cron_expression, datetime.now())
+        next_occurrence = cron.get_next(datetime)
+
+        # Skip if even expected but is uneven week
+        if even_uneven_weeks == 'EVEN' and next_occurrence.isocalendar().week % 2 != 0:
+            next_occurrence = cron.get_next(datetime)
+
+        # Skip if uneven expected but is even week
+        if even_uneven_weeks == 'UNEVEN' and next_occurrence.isocalendar().week % 2 == 0:
+            next_occurrence = cron.get_next(datetime)
+
         event_duration = parse_timedelta(event)
 
         event = AttributeDict({
@@ -156,12 +183,12 @@ def insert_recurring_events(generator):
             'metadata': dict({
                 'title': event['title'],
                 'summary': event['summary'],
-                'date': next_occurence,
+                'date': next_occurrence,
                 'event-location' : event['location']
             }),
             'event_plugin_data': dict({
-                'dtstart': next_occurence,
-                'dtend': next_occurence + event_duration,
+                'dtstart': next_occurrence,
+                'dtend': next_occurrence + event_duration,
             })
         })
         events.append(event)
