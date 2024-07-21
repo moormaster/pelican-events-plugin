@@ -65,7 +65,8 @@ def parse_tstamp(metadata, field_name):
     :returns: datetime
     """
     try:
-        return datetime.strptime(metadata[field_name], '%Y-%m-%d %H:%M')
+        # assume local system timezone when parsing datetime
+        return datetime.strptime(metadata[field_name], '%Y-%m-%d %H:%M').astimezone()
     except Exception as e:
         log.error("Unable to parse the '%s' field in the event named '%s': %s" \
             % (field_name, metadata['title'], e))
@@ -101,7 +102,7 @@ field in the '%s' event.""" % (c, metadata['title']))
 
 
 def basic_isoformat(datetime_value):
-    return datetime_value.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return datetime_value.isoformat(timespec='seconds')
 
 
 def parse_article(content):
@@ -166,8 +167,8 @@ def insert_recurring_events(generator):
                 'event-location' : event['location']
             }),
             'event_plugin_data': dict({
-                'dtstart': next_occurrence,
-                'dtend': next_occurrence + event_duration,
+                'dtstart': next_occurrence.astimezone(),
+                'dtend': next_occurrence.astimezone() + event_duration,
             })
         })
         events.append(event)
@@ -200,14 +201,14 @@ def generate_ical_file(generator):
     DEFAULT_LANG = generator.settings['DEFAULT_LANG']
     curr_events = events if not localized_events else localized_events[DEFAULT_LANG]
 
-    filtered_list = filter(lambda x: x.event_plugin_data["dtstart"] >= datetime.now(), curr_events)
+    filtered_list = filter(lambda x: x.event_plugin_data["dtstart"] >= datetime.now().astimezone(), curr_events)
 
     for e in filtered_list:
         icalendar_event = icalendar.Event(
             summary=strip_html_tags(e.metadata[metadata_field_for_event_summary]),
-            dtstart=basic_isoformat(e.event_plugin_data["dtstart"]),
-            dtend=basic_isoformat(e.event_plugin_data["dtend"]),
-            dtstamp=basic_isoformat(e.metadata['date']),
+            dtstart=basic_isoformat(e.event_plugin_data["dtstart"].astimezone(tz)),
+            dtend=basic_isoformat(e.event_plugin_data["dtend"].astimezone(tz)),
+            dtstamp=basic_isoformat(e.metadata['date'].astimezone(tz)),
             priority=5,
             uid=generator.settings['SITEURL'] + e.url,
         )
