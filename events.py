@@ -100,8 +100,13 @@ field in the '%s' event.""" % (c, metadata['title']))
     return timedelta(**tdargs)
 
 
-def basic_isoformat(datetime_value):
-    return datetime_value.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+def basic_utc_isoformat(datetime_value):
+    utc_datetime = datetime_value.astimezone(timezone.utc)
+    pure_datetime = utc_datetime.replace(tzinfo=None)
+    iso_timestamp = pure_datetime.isoformat(timespec='seconds')
+    stripped_iso_timestamp = iso_timestamp.replace('-','').replace(':', '')
+
+    return stripped_iso_timestamp + 'Z'
 
 
 def parse_article(content):
@@ -190,9 +195,6 @@ def generate_ical_file(generator):
     ics_fname = os.path.join(generator.settings['OUTPUT_PATH'], ics_fname)
     log.debug("Generating calendar at %s with %d events" % (ics_fname, len(events)))
 
-    tz = generator.settings.get('TIMEZONE', 'UTC')
-    tz = pytz.timezone(tz)
-
     ical = icalendar.Calendar()
     ical.add('prodid', '-//My calendar product//mxm.dk//')
     ical.add('version', '2.0')
@@ -205,9 +207,9 @@ def generate_ical_file(generator):
     for e in filtered_list:
         icalendar_event = icalendar.Event(
             summary=strip_html_tags(e.metadata[metadata_field_for_event_summary]),
-            dtstart=basic_isoformat(e.event_plugin_data["dtstart"]),
-            dtend=basic_isoformat(e.event_plugin_data["dtend"]),
-            dtstamp=basic_isoformat(e.metadata['date']),
+            dtstart=basic_utc_isoformat(e.event_plugin_data["dtstart"]),
+            dtend=basic_utc_isoformat(e.event_plugin_data["dtend"]),
+            dtstamp=basic_utc_isoformat(e.metadata['date']),
             priority=5,
             uid=generator.settings['SITEURL'] + e.url,
         )
