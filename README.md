@@ -13,6 +13,7 @@ We have done some modifications on the official version of the plugin
 - introduced a new setting `metadata_field_for_summary` to control which metadata field should be used as event summary text for events in the ics file
 - calendar.ics file and events_list.html do not include events from draft pages anymore
 - added an upcoming_events field to the context data of a page template for rendering current and future events only
+- added a setting `recurring_events` describing recurring events with a [date pattern](https://github.com/kvh/recurrent?tab=readme-ov-file#recurring-events) that are automatically added to the ical file
 
 
 Dependencies
@@ -35,12 +36,23 @@ You can define settings with the `PLUGIN_EVENTS` variable:
 PLUGIN_EVENTS = {
     'metadata_field_for_summary': 'summary'
     'ics_fname': 'calendar.ics',
+    'recurring_events': [
+        {
+            'title': 'Monthly meeting',
+            'summary': '<p>We are meeting every fourth tuesday at the local pizza store</p>',
+            'page_url': 'pizza_day_info.html',
+            'location': 'Pizza Bob Street 1',
+            'recurring_rule': 'Every fourth Tuesday starting from May 28 2023',
+            'event-duration': '2h'
+        }
+    ]
 }
 ```
 
 Settings:
 - `ics_fname`: Where the iCal file is written
 - `metadata_field_for_summary`: Metadata field from articles to be used as summary text for events in the ics file. Default: 'summary'
+- `recurring_events`: List of recurring events to additionally add to the  ical file. The field `recurrent_rule` contains a [recurring date pattern in natural language](https://github.com/kvh/recurrent?tab=readme-ov-file#recurring-events).
 
 
 Usage

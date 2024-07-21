@@ -13,6 +13,8 @@ Author: Federico Ceratto <federico.ceratto@gmail.com>
 Released under AGPLv3+ license, see LICENSE
 """
 
+from dateutil import rrule
+from recurrent.event_parser import RecurringEvent
 from datetime import datetime, timedelta, timezone
 from pelican import signals, utils, contents
 from collections import namedtuple, defaultdict
@@ -23,7 +25,6 @@ import logging
 import os.path
 import pytz
 import re
-import croniter
 
 log = logging.getLogger(__name__)
 
@@ -147,33 +148,11 @@ def insert_recurring_events(generator):
         return
 
     for event in generator.settings['PLUGIN_EVENTS']['recurring_events']:
-        cron_expression = event['schedule']
-
-        even_uneven_weeks = ''
-
-        # Check whether cron_expression contains even matcher
-        p = re.compile('.*e$')
-        if p.match(cron_expression):
-            cron_expression = cron_expression[:-1]
-            even_uneven_weeks = 'EVEN'
-
-        # Check whether cron_expression contains uneven matcher
-        p = re.compile('.*u$')
-        if p.match(cron_expression):
-            print('UNEVEN weeks only')
-            cron_expression = cron_expression[:-1]
-            even_uneven_weeks = 'UNEVEN'
-
-        cron = croniter.croniter(cron_expression, datetime.now())
-        next_occurrence = cron.get_next(datetime)
-
-        # Skip if even expected but is uneven week
-        if even_uneven_weeks == 'EVEN' and next_occurrence.isocalendar().week % 2 != 0:
-            next_occurrence = cron.get_next(datetime)
-
-        # Skip if uneven expected but is even week
-        if even_uneven_weeks == 'UNEVEN' and next_occurrence.isocalendar().week % 2 == 0:
-            next_occurrence = cron.get_next(datetime)
+        recurring_rule = event['recurring_rule']
+        r = RecurringEvent(now_date=datetime.now())
+        r.parse(recurring_rule)
+        rr = rrule.rrulestr(r.get_RFC_rrule())
+        next_occurrence = rr.after(datetime.now())
 
         event_duration = parse_timedelta(event)
 
