@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pelican-makerspace-esslingen-events"
+dynamic = ["version"]
+description = 'This plugin allows you to put events in your content via metadata. An iCal file is generated containing all events.'
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "moormaster", email = "moormaster@gmx.net" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "icalendar",
+  "recurrent"
+]
+
+[project.urls]
+Documentation = "https://github.com/Makerspace-Esslingen/pelican-events-plugin#readme"
+Issues = "https://github.com/Makerspace-Esslingen/pelican-events-plugin/issues"
+Source = "https://github.com/Makerspace-Esslingen/pelican-events-plugin"
+
+[tool.hatch.version]
+path = "src/pelican/plugins/makerspace_esslingen_events/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/pelican/plugins/makerspace_esslingen_events tests}"
+
+[tool.coverage.run]
+source_pkgs = ["pelican.makerspace_esslingen_events", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/pelican/plugins/makerspace_esslingen_events/__about__.py",
+]
+
+[tool.coverage.paths]
+pelican_makerspace_esslingen_events = ["src/pelican/plugins/makerspace_esslingen_events", "*/pelican-makerspace-esslingen-events/src/pelican/plugins/makerspace_esslingen_events"]
+tests = ["tests", "*/pelican-makerspace-esslingen-events/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [ "src/pelican" ]
